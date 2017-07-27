@@ -14,6 +14,9 @@ normalOutputVolume = 50
 # Location of the "notification" WAV file that is played before the text
 notificationSoundFile = "/home/pi/notification.wav"
 
+# A directory in which to download (cache) the TTS MP3
+workingDirectory = "/home/pi/TTSAudioInterrupter"
+
 # MQTT Credentials
 MQTTIPAddress = "REDACTED"
 MQTTPort = 1883
@@ -55,12 +58,12 @@ def on_message(client, userdata, msg):
 		print(message) # Useful for debugging
 		
 		tts = gTTS(text=message, lang='en') # Ask Google for the TTS MP3 file
-		tts.save("tts.mp3") # Save it to the working directory
+		tts.save("{0}/tts.mp3".format(workingDirectory)) # Save it to the working directory
 		
 		setInputVolume(reducedInputVolume) # Lower the input volume
 		time.sleep(0.5) # Wait half a second (sounds better)
 		os.system("aplay {0}".format(notificationSoundFile)) # Use Alsa Play to play the notification WAV file
-		os.system("mpg123 /home/pi/tts.mp3") # Use mpg123 to play the TTS MP3 file
+		os.system("mpg123 {0}/tts.mp3".format(workingDirectory)) # Use mpg123 to play the TTS MP3 file
 		setInputVolume(normalInputVolume) # Return the input volume to normal
 
 # These 2 lines ensure the volumes are set to normal upon startup
