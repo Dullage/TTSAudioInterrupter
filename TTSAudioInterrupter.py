@@ -58,7 +58,7 @@ def on_message(client, userdata, msg):
 		message = msg.payload.decode('utf-8')
 		print(message) # Useful for debugging
 		
-		tts = gTTS(text=message, lang='en') # Ask Google for the TTS MP3 file
+		tts = gTTS(text=message, lang='en-uk') # Ask Google for the TTS MP3 file
 		tts.save("{0}/tts.mp3".format(workingDirectory)) # Save it to the working directory
 		
 		setInputVolume(reducedInputVolume) # Lower the input volume
