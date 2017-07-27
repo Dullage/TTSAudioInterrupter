@@ -12,7 +12,7 @@ reducedInputVolume = 0
 normalOutputVolume = 50
 
 # Location of the "notification" WAV file that is played before the text
-notificationSoundFile = "/home/pi/notification.wav"
+notificationSoundFile = "/home/pi/TTSAudioInterrupter/notification.wav"
 
 # A directory in which to download (cache) the TTS MP3
 workingDirectory = "/home/pi/TTSAudioInterrupter"
@@ -43,6 +43,7 @@ while connected == False:
 		client.connect(MQTTIPAddress, MQTTPort, 60)
 		connected = True
 	except:
+		print("Connection Failed! Retrying in 3s...")
 		time.sleep(3)
 
 # When connected, subscribe to the appropriate topic
