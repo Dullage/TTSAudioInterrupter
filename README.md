@@ -1,1 +1,1 @@
-# TBC
+An article describing the use of this script can be found [here](https://community.home-assistant.io/t/in-line-tts-audio-interupter-using-a-raspberry-pi/22759).
