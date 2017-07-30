@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import paho.mqtt.client as mqtt
 from gtts import gTTS
-import os
 import time
-
+import os
+import vlc
 
 # USER PARAMETERS #
 # Set the volume levels that work best for you
@@ -24,7 +24,6 @@ MQTTUserName = "REDACTED"
 MQTTPassword = "REDACTED"
 MQTTTopic = "tts"
 # END OF USER PARAMETERS #
-
 
 # Function to set the input volume level using Alsa Mixer
 def setInputVolume(volume):
@@ -61,12 +60,29 @@ def on_message(client, userdata, msg):
 		tts = gTTS(text=message, lang='en-uk') # Ask Google for the TTS MP3 file
 		tts.save("{0}/tts.mp3".format(workingDirectory)) # Save it to the working directory
 		
-		setInputVolume(reducedInputVolume) # Lower the input volume
-		time.sleep(0.5) # Wait half a second (sounds better)
-		os.system("aplay {0}".format(notificationSoundFile)) # Use Alsa Play to play the notification WAV file
-		os.system("mpg123 {0}/tts.mp3".format(workingDirectory)) # Use mpg123 to play the TTS MP3 file
+		setInputVolume(reducedInputVolume)
+		
+		time.sleep(0.5) # Wait half a second, sounds better
+		
+		# Play the notification sound
+		player.set_media(notificationFile)
+		player.play()
+		while (player.get_state() != 6): # While the file has not finished playing
+			pass # Wait
+		
+		# Play the TTS audio file
+		player.set_media(ttsFile)
+		player.play()
+		while (player.get_state() != 6): # While the file has not finished playing
+			pass # Wait
+		
 		setInputVolume(normalInputVolume) # Return the input volume to normal
 
+instance = vlc.Instance() # Start an instance of VLC
+player = instance.media_player_new() # Create a new VLC player 
+notificationFile = instance.media_new(notificationSoundFile) # Tell VLC about the notification sound file
+ttsFile = instance.media_new(workingDirectory + '/tts.mp3') # Tell VLC about the tts sound file
+		
 # These 2 lines ensure the volumes are set to normal upon startup
 setInputVolume(normalInputVolume)
 setOutputVolume(normalOutputVolume)
