@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python	
 import paho.mqtt.client as mqtt
 from gtts import gTTS
 import time
@@ -22,7 +22,8 @@ MQTTIPAddress = "REDACTED"
 MQTTPort = 1883
 MQTTUserName = "REDACTED"
 MQTTPassword = "REDACTED"
-MQTTTopic = "tts"
+MQTTTTSTopic = "tts" # Any text received on this topic will be read out by gTTS
+MQTTAudioFileTopic = "audio" # Send a file name on this topic and as long as it's in the working directory it will be played
 # END OF USER PARAMETERS #
 
 # Function to set the input volume level using Alsa Mixer
@@ -47,13 +48,15 @@ while connected == False:
 
 # When connected, subscribe to the appropriate topic
 def on_connect(client, userdata, flags, rc):
-	client.subscribe(MQTTTopic)
+	client.subscribe(MQTTTTSTopic)
+	client.subscribe(MQTTAudioFileTopic)
 
 # This is what happens when an MQTT message is sent to the subscribed topic
 def on_message(client, userdata, msg):
 	topic = msg.topic.decode('utf-8')
 
-	if topic == MQTTTopic: # We are only subscribed to 1 topic but this could be useful if others are added
+	# TTS Reader
+	if topic == MQTTTTSTopic:
 		message = msg.payload.decode('utf-8')
 		print(message) # Useful for debugging
 		
@@ -77,13 +80,32 @@ def on_message(client, userdata, msg):
 			pass # Wait
 		
 		setInputVolume(normalInputVolume) # Return the input volume to normal
+		
+	# Custom Audio File Player
+	elif topic == MQTTAudioFileTopic:
+		message = msg.payload.decode('utf-8')
+		print(message) # Useful for debugging
+		
+		audioFile =  instance.media_new("{0}/{1}".format(workingDirectory, message))
+		
+		setInputVolume(reducedInputVolume)
+		
+		time.sleep(0.5) # Wait half a second, sounds better
+		
+		# Play the specified audio file
+		player.set_media(audioFile)
+		player.play()
+		while (player.get_state() != 6): # While the file has not finished playing
+			pass # Wait
+		
+		setInputVolume(normalInputVolume) # Return the input volume to normal
 
 instance = vlc.Instance() # Start an instance of VLC
 player = instance.media_player_new() # Create a new VLC player 
 notificationFile = instance.media_new(notificationSoundFile) # Tell VLC about the notification sound file
 ttsFile = instance.media_new(workingDirectory + '/tts.mp3') # Tell VLC about the tts sound file
 		
-# These 2 lines ensure the volumes are set to normal upon startup
+# These 2 lines ensure the volumes are set to normal upon start-up
 setInputVolume(normalInputVolume)
 setOutputVolume(normalOutputVolume)
 
